@@ -52,6 +52,11 @@ app.use('/api/students', require('./routes/students'));
 app.use('/api/assessments', require('./routes/assessments'));
 app.use('/api/stats', require('./routes/stats'));
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Edumate API' });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
