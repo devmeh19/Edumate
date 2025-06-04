@@ -13,7 +13,9 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://edumate.vercel.app', 'https://edumate-frontend.vercel.app']
+    : 'http://localhost:3000',
   credentials: true
 }));
 app.use(express.json());
@@ -21,11 +23,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: process.env.JWT_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/vopa-assessment',
+    mongoUrl: process.env.MONGODB_URI,
     ttl: 24 * 60 * 60 // 1 day
   }),
   cookie: {
@@ -36,7 +38,7 @@ app.use(session({
 }));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/vopa-assessment', {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -49,6 +51,11 @@ app.use('/api/classes', require('./routes/classes'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/assessments', require('./routes/assessments'));
 app.use('/api/stats', require('./routes/stats'));
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
